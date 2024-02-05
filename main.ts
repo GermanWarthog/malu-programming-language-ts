@@ -1,4 +1,5 @@
 import Parser from "./frontend/parser.ts";
+import { evaluate } from "./runtime/interpreter.ts";
 
 repl();
 
@@ -19,5 +20,8 @@ function repl() {
     // @ts-ignore
     const program = parser.produceAST(input);
     console.log(program);
+
+    const results = evaluate(program);
+    console.log(results)
   }
 }
