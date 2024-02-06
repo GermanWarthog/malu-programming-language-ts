@@ -1,26 +1,28 @@
-import { NullValue, NumberValue, RuntimeValue } from "./values.ts"
-import { BinaryExpr, NumericLiteral, Program, Statement } from "../frontend/ast.ts"
+import { NumberValue, RuntimeValue } from "./values.ts"
+import { BinaryExpr, Identifier, NumericLiteral, Program, Statement } from "../frontend/ast.ts"
+import Environement from "./environement.ts";
+import { MAKE_NULL } from "./macros.ts";
 
 
-function evaluateProgram(program: Program): RuntimeValue {
-    let lastEvaluated: RuntimeValue = {type: "null", value: "null"} as NullValue;
+function evaluateProgram(program: Program, env: Environement): RuntimeValue {
+    let lastEvaluated: RuntimeValue = MAKE_NULL();
 
     for (const statment of program.body) {
-        lastEvaluated = evaluate(statment);
+        lastEvaluated = evaluate(statment, env);
     }
 
     return lastEvaluated
 }
 
-function evaluateBinaryExpression(binOperation: BinaryExpr): RuntimeValue {
-    const left = evaluate(binOperation.left)
-    const right = evaluate(binOperation.right)
+function evaluateBinaryExpression(binOperation: BinaryExpr, env: Environement): RuntimeValue {
+    const left = evaluate(binOperation.left, env)
+    const right = evaluate(binOperation.right, env)
 
     if (left.type == 'number' && right.type == 'number') {
         return evaluateNumericExpression(left as NumberValue, right as NumberValue, binOperation.operator)
     }
 
-    return {type: "null", value: "null"} as NullValue
+    return MAKE_NULL();
 }
 
 function evaluateNumericExpression(left: NumberValue, right: NumberValue, operator: string): NumberValue {
@@ -49,8 +51,13 @@ function evaluateNumericExpression(left: NumberValue, right: NumberValue, operat
     };
 }
 
+function evaluateIdentifier(identifier: Identifier, env: Environement): RuntimeValue {
+    const value = env.lookupVariable(identifier.symbol);
+    return value;
+}
+
 //@ts-ignore
-export function evaluate(astNode: Statement): RuntimeValue {
+export function evaluate(astNode: Statement, env: Environement): RuntimeValue {
     switch (astNode.kind) {
         case "NumericLiteral":
             return {
@@ -58,17 +65,14 @@ export function evaluate(astNode: Statement): RuntimeValue {
                 type: "number"
             } as NumberValue;
 
-        case "NullLiteral":
-            return {
-                value: "null",
-                type: "null"
-            } as NullValue;
+        case "Identifier":
+            return evaluateIdentifier(astNode as Identifier, env);
 
         case "BinaryExpr":
-            return evaluateBinaryExpression(astNode as BinaryExpr);
+            return evaluateBinaryExpression(astNode as BinaryExpr, env);
 
         case "Program":
-            return evaluateProgram(astNode as Program);
+            return evaluateProgram(astNode as Program, env);
 
         default:
             console.error("This AST Node has not yet been setup for interpretation.", astNode);
