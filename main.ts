@@ -1,7 +1,7 @@
 import Parser from "./frontend/parser.ts";
 import Environement from "./runtime/environement.ts";
 import { evaluate } from "./runtime/interpreter.ts";
-import { MAKE_BOOL, MAKE_NULL, MAKE_NUMBER } from "./runtime/macros.ts";
+import { MAKE_BOOL, MAKE_NULL } from "./runtime/macros.ts";
 
 repl();
 
@@ -9,10 +9,9 @@ function repl() {
   const parser = new Parser();
   const env = new Environement();
 
-  env.declareVariable("x", MAKE_NUMBER(100));
-  env.declareVariable("true", MAKE_BOOL(true));
-  env.declareVariable("false", MAKE_BOOL(false));
-  env.declareVariable("null", MAKE_NULL());
+  env.declareVariable("true", MAKE_BOOL(true), true);
+  env.declareVariable("false", MAKE_BOOL(false), true);
+  env.declareVariable("null", MAKE_NULL(), true);
 
   console.log("\nRepl v0.1");
 

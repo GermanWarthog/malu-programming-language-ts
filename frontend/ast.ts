@@ -1,4 +1,13 @@
-export type NodeType = "Program" | "NumericLiteral" | "Identifier" | "BinaryExpr" | "CallExpr" | "FunctionDecleration";
+export type NodeType = 
+// Statements
+| "Program"
+| "VariableDeclaration"
+
+// Expressions  
+| "NumericLiteral" 
+| "Identifier" 
+| "BinaryExpr"
+| "AssignmentExpr"
 
 export interface Statement {
     kind: NodeType
@@ -9,6 +18,13 @@ export interface Program extends Statement {
     body: Statement[];
 }
 
+export interface VariableDeclaration extends Statement {
+    kind: "VariableDeclaration";
+    constant: boolean;
+    identifier: string;
+    value?: Expression;
+}
+
 export interface Expression extends Statement {}
 
 export interface BinaryExpr extends Expression {
@@ -16,6 +32,12 @@ export interface BinaryExpr extends Expression {
     left: Expression;
     right: Expression;
     operator: string;
+}
+
+export interface AssignmentExpr extends Expression {
+    kind: "AssignmentExpr";
+    assigne: Expression;
+    value: Expression;
 }
 
 export interface Identifier extends Expression {

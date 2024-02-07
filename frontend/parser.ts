@@ -1,4 +1,4 @@
-import type { Statement, Program, Expression, BinaryExpr, NumericLiteral, Identifier } from "./ast.ts";
+import type { Statement, Program, Expression, BinaryExpr, NumericLiteral, Identifier, VariableDeclaration, AssignmentExpr } from "./ast.ts";
 import { Tokenize, type Token, TokenType } from "./lexer.ts";
 
 export default class Parser {
@@ -25,14 +25,40 @@ export default class Parser {
             //@ts-ignore
             Deno.exit(1)
         }
+
+        return prev;
     }
 
     private parseStatement(): Statement {
-        return this.parseExpression()
+        switch (this.at().type) {
+            case TokenType.Let:
+                return this.parseVariableDeclaration();
+            case TokenType.Const:
+                return this.parseVariableDeclaration();
+
+            default:
+                return this.parseAdditiveExpression();
+        }
     }
 
     private parseExpression(): Expression {
-        return this.parseAdditiveExpression();
+        return this.parseAssgnmentExpression();
+    }
+
+    private parseAssgnmentExpression(): Expression {
+        const left = this.parseAdditiveExpression();
+        
+        if (this.at().type == TokenType.Equals) {
+            const value = this.parseAssgnmentExpression();
+
+            return {
+                value,
+                assigne: left,
+                kind: "AssignmentExpr",
+            } as AssignmentExpr
+        }
+
+        return left;
     }
 
     private parseAdditiveExpression(): Expression {
@@ -94,6 +120,40 @@ export default class Parser {
                 // @ts-ignore
                 Deno.exit(1)  
         }
+    }
+
+    private parseVariableDeclaration(): Statement {
+        const isConstant = this.next().type == TokenType.Const;
+        const identifier = this.expect(TokenType.Identifier, "Expected identifier name following let | const keywords.").value;
+
+        if (this.at().type == TokenType.Semicolon) {
+            
+            this.next();
+
+            if (isConstant) {
+                throw "Must assign a value to a constant variable."
+            }
+
+            return {
+                kind: "VariableDeclaration", 
+                identifier, 
+                constant: false, 
+                value: undefined
+            } as VariableDeclaration
+        }
+
+        this.expect(TokenType.Equals, "Expected equals sign following variable declaration.");
+        
+        const declaration = {
+            kind: "VariableDeclaration",
+            identifier,
+            constant: isConstant,
+            value: this.parseExpression()
+        } as VariableDeclaration;
+
+        this.expect(TokenType.Semicolon, "Expected semicolon following variable declaration.");
+
+        return declaration;
     }
 
     public produceAST(sourceCode: string): Program {
