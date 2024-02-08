@@ -4,14 +4,15 @@ export enum TokenType {
     Identifier,
 
     // Keywords
-    Let, Const,
+    Let, 
+    Const,
     
     // Grouping * Operators
+    BinaryOperator,
     Equals,
     Semicolon,
     OpenParen, 
     CloseParen,
-    BinaryOperator,
     EndOfFile
 }
 
@@ -33,15 +34,15 @@ function isAlpha(src: string) {
     return src.toUpperCase() != src.toLowerCase();
 }
 
+function isSkippable(str: string) {
+    return str == ' ' || str == '\n' || str == '\t';
+}
+
 function isInt(str: string) {
     const c = str.charCodeAt(0);
     const bounds = ['0'.charCodeAt(0), '9'.charCodeAt(0)];
 
     return (c >= bounds[0] && c <= bounds[1]);
-}
-
-function isSkippable(str: string) {
-    return str == ' ' || str == '\n' || str == '\t';
 }
 
 export function Tokenize(sourceCode: string): Token[] {

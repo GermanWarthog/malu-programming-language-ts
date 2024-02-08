@@ -1,3 +1,4 @@
+import { Tokenize } from "./frontend/lexer.ts";
 import Parser from "./frontend/parser.ts";
 import Environement from "./runtime/environement.ts";
 import { evaluate } from "./runtime/interpreter.ts";
@@ -23,6 +24,8 @@ function repl() {
     // @ts-ignore
       Deno.exit(1);
     }
+
+    console.log(Tokenize(input as string));
 
     // Produce AST From sourc-code
     // @ts-ignore

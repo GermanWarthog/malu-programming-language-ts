@@ -2,10 +2,10 @@ import type { Statement, Program, Expression, BinaryExpr, NumericLiteral, Identi
 import { Tokenize, type Token, TokenType } from "./lexer.ts";
 
 export default class Parser {
-    private tokens: Token[] = []
+    private tokens: Token[] = [];
 
     private notEndOfFile(): boolean {
-        return this.tokens[0].type != TokenType.EndOfFile
+        return this.tokens[0].type != TokenType.EndOfFile;
     }
     
     private at() {
@@ -29,27 +29,75 @@ export default class Parser {
         return prev;
     }
 
+    public produceAST(sourceCode: string): Program {
+        this.tokens = Tokenize(sourceCode)
+
+        const program: Program = {
+            kind: "Program",
+            body: []
+        }
+
+        while (this.notEndOfFile()) {
+            program.body.push(this.parseStatement())
+        }
+
+        return program;
+    }
+
     private parseStatement(): Statement {
         switch (this.at().type) {
             case TokenType.Let:
-                return this.parseVariableDeclaration();
             case TokenType.Const:
                 return this.parseVariableDeclaration();
 
             default:
-                return this.parseAdditiveExpression();
+                return this.parseExpression();
         }
     }
 
-    private parseExpression(): Expression {
-        return this.parseAssgnmentExpression();
+    private parseVariableDeclaration(): Statement {
+        const isConstant = this.next().type == TokenType.Const;
+        const identifier = this.expect(TokenType.Identifier, "Expected identifier name following let | const keywords.").value;
+
+        if (this.at().type == TokenType.Semicolon) {
+            
+            this.next();
+
+            if (isConstant) {
+                throw "Must assign a value to a constant variable."
+            }
+
+            return {
+                kind: "VariableDeclaration", 
+                identifier, 
+                constant: false, 
+            } as VariableDeclaration
+        }
+
+        this.expect(TokenType.Equals, "Expected equals sign following variable declaration.");
+        
+        const declaration = {
+            kind: "VariableDeclaration",
+            value: this.parseExpression(),
+            identifier,
+            constant: isConstant,
+        } as VariableDeclaration;
+
+        this.expect(TokenType.Semicolon, "Expected semicolon following variable declaration.");
+
+        return declaration;
     }
 
-    private parseAssgnmentExpression(): Expression {
+    private parseExpression(): Expression {
+        return this.parseAssignmentExpression();
+    }
+
+    private parseAssignmentExpression(): Expression {
         const left = this.parseAdditiveExpression();
         
         if (this.at().type == TokenType.Equals) {
-            const value = this.parseAssgnmentExpression();
+            this.next();
+            const value = this.parseAssignmentExpression();
 
             return {
                 value,
@@ -103,10 +151,16 @@ export default class Parser {
 
         switch (token) {
             case TokenType.Identifier:
-                return {kind: "Identifier", symbol: this.next().value } as Identifier
+                return {
+                    kind: "Identifier", 
+                    symbol: this.next().value 
+                } as Identifier
 
             case TokenType.Number:
-                return {kind: "NumericLiteral", value: parseFloat(this.next().value) } as NumericLiteral
+                return {
+                    kind: "NumericLiteral", 
+                    value: parseFloat(this.next().value) 
+                } as NumericLiteral
 
             case TokenType.OpenParen: {
                 this.next();
@@ -120,54 +174,5 @@ export default class Parser {
                 // @ts-ignore
                 Deno.exit(1)  
         }
-    }
-
-    private parseVariableDeclaration(): Statement {
-        const isConstant = this.next().type == TokenType.Const;
-        const identifier = this.expect(TokenType.Identifier, "Expected identifier name following let | const keywords.").value;
-
-        if (this.at().type == TokenType.Semicolon) {
-            
-            this.next();
-
-            if (isConstant) {
-                throw "Must assign a value to a constant variable."
-            }
-
-            return {
-                kind: "VariableDeclaration", 
-                identifier, 
-                constant: false, 
-                value: undefined
-            } as VariableDeclaration
-        }
-
-        this.expect(TokenType.Equals, "Expected equals sign following variable declaration.");
-        
-        const declaration = {
-            kind: "VariableDeclaration",
-            identifier,
-            constant: isConstant,
-            value: this.parseExpression()
-        } as VariableDeclaration;
-
-        this.expect(TokenType.Semicolon, "Expected semicolon following variable declaration.");
-
-        return declaration;
-    }
-
-    public produceAST(sourceCode: string): Program {
-        this.tokens = Tokenize(sourceCode)
-
-        const program: Program = {
-            kind: "Program",
-            body: []
-        }
-
-        while (this.notEndOfFile()) {
-            program.body.push(this.parseStatement())
-        }
-
-        return program;
     }
 }
