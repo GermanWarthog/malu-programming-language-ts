@@ -11,15 +11,19 @@ export function createGlobalEnvironment() {
     // Native Functions
     env.declareVariable('print', MAKE_NATIVE_FUNCTION((args, scope) => {
         //@ts-ignore
-        const value = args[0].value;
+        console.log(args.map(arg => arg.value || `[${arg.type}]`).join(', '));
+        return MAKE_NULL();
+    }), true);
 
-        console.log(value || "null");
+    env.declareVariable('log', MAKE_NATIVE_FUNCTION((args, scope) => {
+        //@ts-ignore
+        console.log(...args);
         return MAKE_NULL();
     }), true);
 
     env.declareVariable('malu', MAKE_NATIVE_FUNCTION((args, scope) => {
-        for (let i = 0; i < 10000; i++) {
-            console.log("I Love You!\r");
+        for (let i = 0; i <= 1e10; i++) {
+            console.log("I Love You a " + i +" times ♥!\r");
         }
         return MAKE_NULL();
     }), true);

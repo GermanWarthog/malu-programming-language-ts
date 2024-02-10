@@ -1,3 +1,14 @@
+let foo = 50 / 2;
+
+const obj = {
+    x: 100,
+    y: 32,
+    foo: foo,
+    complex: {
+        bar: true,
+    },
+};
+
 func add(x, y) {
     let result = x + y;
     result + 5
@@ -6,5 +17,3 @@ func add(x, y) {
 const result = add(10, 4);
 
 print(result)
-
-malu()
