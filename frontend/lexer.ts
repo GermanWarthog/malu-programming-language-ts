@@ -10,9 +10,13 @@ export enum TokenType {
     // Grouping * Operators
     BinaryOperator,
     Equals,
+    Comma,
+    Colon,
     Semicolon,
     OpenParen, 
     CloseParen,
+    OpenBracket,
+    CloseBracket,
     EndOfFile
 }
 
@@ -35,7 +39,7 @@ function isAlpha(src: string) {
 }
 
 function isSkippable(str: string) {
-    return str == ' ' || str == '\n' || str == '\t';
+    return str == ' ' || str == '\n' || str == '\t' || str == '\r';
 }
 
 function isInt(str: string) {
@@ -60,6 +64,16 @@ export function Tokenize(sourceCode: string): Token[] {
             continue
         }
 
+        if (src[0] == '{') {
+            tokens.push(token(src.shift(), TokenType.OpenBracket));
+            continue
+        }
+        
+        if (src[0] == "}") {
+            tokens.push(token(src.shift(), TokenType.CloseBracket));
+            continue
+        }
+
         if (src[0] == "+" || src[0] == "-" || src[0] == "*" || src[0] == "/" || src[0] == "%") {
             tokens.push(token(src.shift(), TokenType.BinaryOperator));
             continue
@@ -72,6 +86,16 @@ export function Tokenize(sourceCode: string): Token[] {
         
         if (src[0] == ";") {
             tokens.push(token(src.shift(), TokenType.Semicolon));
+            continue
+        }
+        
+        if (src[0] == ":") {
+            tokens.push(token(src.shift(), TokenType.Colon));
+            continue
+        }
+
+        if (src[0] == ",") {
+            tokens.push(token(src.shift(), TokenType.Comma));
             continue
         }
 

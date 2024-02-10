@@ -1,4 +1,4 @@
-export type ValueTypes = "null" | "number" | "boolean";
+export type ValueTypes = "null" | "number" | "boolean" | "object";
 
 export interface RuntimeValue {
     type: ValueTypes;
@@ -17,4 +17,9 @@ export interface NumberValue extends RuntimeValue {
 export interface BooleanValue extends RuntimeValue {
     type: "boolean";
     value: boolean;
+}
+
+export interface ObjectValue extends RuntimeValue {
+    type: "object";
+    properties: Map<string, RuntimeValue>;
 }

@@ -1,10 +1,10 @@
-import { NumericLiteral, Identifier, BinaryExpr, Program, VariableDeclaration, AssignmentExpr } from "../frontend/ast.ts";
-import { evaluateIdentifier, evaluateBinaryExpression, evaluateAssignment } from "./evaluations/expressions.ts";
+import { NumericLiteral, Identifier, BinaryExpr, Program, VariableDeclaration, AssignmentExpr, ObjectLiteral } from "../frontend/ast.ts";
+import { evaluateIdentifier, evaluateBinaryExpression, evaluateAssignment, evaluateObjectExpression } from "./evaluations/expressions.ts";
 import { evaluateProgram, evealuateVariableDeclaration } from "./evaluations/statements.ts";
 import { NumberValue } from "./values.ts";
 
 //@ts-ignore
-export function evaluate(astNode: Statement, env: Environement): RuntimeValue {
+export function evaluate(astNode: Statement, env: Environment): RuntimeValue {
     switch (astNode.kind) {
         case "NumericLiteral":
             return {
@@ -14,6 +14,9 @@ export function evaluate(astNode: Statement, env: Environement): RuntimeValue {
 
         case "Identifier":
             return evaluateIdentifier(astNode as Identifier, env);
+
+        case "ObjectLiteral":
+            return evaluateObjectExpression(astNode as ObjectLiteral, env);
 
         case "AssignmentExpr":
             return evaluateAssignment(astNode as AssignmentExpr, env);

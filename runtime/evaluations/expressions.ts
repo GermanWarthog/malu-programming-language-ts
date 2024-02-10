@@ -1,8 +1,8 @@
-import { AssignmentExpr, BinaryExpr, Identifier } from "../../frontend/ast.ts";
-import Environement from "../environement.ts";
+import { AssignmentExpr, BinaryExpr, Identifier, ObjectLiteral } from "../../frontend/ast.ts";
+import Environment from "../environment.ts";
 import { evaluate } from "../interpreter.ts";
 import { MAKE_NULL } from "../macros.ts";
-import { RuntimeValue, NumberValue } from "../values.ts";
+import { RuntimeValue, NumberValue, ObjectValue } from "../values.ts";
 
 function evaluateNumericExpression(left: NumberValue, right: NumberValue, operator: string): NumberValue {
     let result = 0;
@@ -30,7 +30,7 @@ function evaluateNumericExpression(left: NumberValue, right: NumberValue, operat
     };
 }
 
-export function evaluateBinaryExpression(binOperation: BinaryExpr, env: Environement): RuntimeValue {
+export function evaluateBinaryExpression(binOperation: BinaryExpr, env: Environment): RuntimeValue {
     const left = evaluate(binOperation.left, env)
     const right = evaluate(binOperation.right, env)
 
@@ -41,12 +41,24 @@ export function evaluateBinaryExpression(binOperation: BinaryExpr, env: Environe
     return MAKE_NULL();
 }
 
-export function evaluateIdentifier(identifier: Identifier, env: Environement): RuntimeValue {
+export function evaluateIdentifier(identifier: Identifier, env: Environment): RuntimeValue {
     const value = env.lookupVariable(identifier.symbol);
     return value;
 }
 
-export function evaluateAssignment(node: AssignmentExpr, env: Environement): RuntimeValue {
+export function evaluateObjectExpression(object: ObjectLiteral, env: Environment): RuntimeValue {
+    const runtimeObject = {type: "object", properties: new Map()} as ObjectValue;
+    
+    for (const {key, value} of object.properties) {
+        const runtimeValue = (value == undefined) ? env.lookupVariable(key) : evaluate(value, env);
+        
+        runtimeObject.properties.set(key, runtimeValue);
+    }
+
+    return runtimeObject;
+}
+
+export function evaluateAssignment(node: AssignmentExpr, env: Environment): RuntimeValue {
     if (node.assigne.kind != "Identifier") {
         throw `Invalid LHS inside assignment expr ${JSON.stringify(node.assigne)}`
     }

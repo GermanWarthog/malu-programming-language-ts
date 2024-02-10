@@ -1,11 +1,22 @@
+import { MAKE_BOOL, MAKE_NULL } from "./macros.ts";
 import { RuntimeValue } from "./values.ts";
 
-export default class Environement {
-    private parent?: Environement;
+export function createGlobalEnvironment() {
+    const env = new Environment();
+
+    env.declareVariable("true", MAKE_BOOL(true), true);
+    env.declareVariable("false", MAKE_BOOL(false), true);
+    env.declareVariable("null", MAKE_NULL(), true);
+
+    return env;
+}
+
+export default class Environment {
+    private parent?: Environment;
     private variables: Map<string, RuntimeValue>
     private constants: Set<string>;
 
-    constructor(parentENV?: Environement) {
+    constructor(parentENV?: Environment) {
         this.parent = parentENV;
         this.variables = new Map();
         this.constants = new Set();
@@ -41,7 +52,7 @@ export default class Environement {
         return env.variables.get(varName) as RuntimeValue;
     }
 
-    public resolve(varName: string): Environement {
+    public resolve(varName: string): Environment {
         if (this.variables.has(varName)) {
             return this;
         }
