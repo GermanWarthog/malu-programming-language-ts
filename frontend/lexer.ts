@@ -6,23 +6,35 @@ export enum TokenType {
     // Keywords
     Let, 
     Const,
+    Function,
     
     // Grouping * Operators
     BinaryOperator,
     Equals,
     Comma,
+    Dot,
     Colon,
     Semicolon,
-    OpenParen, 
+    
+    // ()
+    OpenParen,
     CloseParen,
+
+    // {}
+    OpenBrace,
+    CloseBrace,
+    
+    // []
     OpenBracket,
     CloseBracket,
+
     EndOfFile
 }
 
 const KEYWORDS: Record<string, TokenType> = {
     let: TokenType.Let,
-    const: TokenType.Const
+    const: TokenType.Const,
+    func: TokenType.Function
 }
 
 export interface Token {
@@ -59,17 +71,27 @@ export function Tokenize(sourceCode: string): Token[] {
             continue
         }
         
-        if (src[0] == ")") {
+        if (src[0] == ')') {
             tokens.push(token(src.shift(), TokenType.CloseParen));
             continue
         }
 
         if (src[0] == '{') {
-            tokens.push(token(src.shift(), TokenType.OpenBracket));
+            tokens.push(token(src.shift(), TokenType.OpenBrace));
             continue
         }
         
         if (src[0] == "}") {
+            tokens.push(token(src.shift(), TokenType.CloseBrace));
+            continue
+        }
+       
+        if (src[0] == '[') {
+            tokens.push(token(src.shift(), TokenType.OpenBracket));
+            continue
+        }
+        
+        if (src[0] == "]") {
             tokens.push(token(src.shift(), TokenType.CloseBracket));
             continue
         }
@@ -96,6 +118,11 @@ export function Tokenize(sourceCode: string): Token[] {
 
         if (src[0] == ",") {
             tokens.push(token(src.shift(), TokenType.Comma));
+            continue
+        }
+        
+        if (src[0] == ".") {
+            tokens.push(token(src.shift(), TokenType.Dot));
             continue
         }
 

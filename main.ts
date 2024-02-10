@@ -5,7 +5,7 @@ import { evaluate } from "./runtime/interpreter.ts";
 import { MAKE_BOOL, MAKE_NULL } from "./runtime/macros.ts";
 
 // repl();
-run('./test.txt');
+run('./script.malu');
 
 async function run(filename: string) {
     const parser = new Parser();
@@ -15,7 +15,7 @@ async function run(filename: string) {
     const input = await Deno.readTextFile(filename);
     const program = parser.produceAST(input);
     const result = evaluate(program, env);
-    console.log(result);
+    // console.log(result);
 }
 
 function repl() {

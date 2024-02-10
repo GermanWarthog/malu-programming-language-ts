@@ -1,8 +1,8 @@
-import { AssignmentExpr, BinaryExpr, Identifier, ObjectLiteral } from "../../frontend/ast.ts";
+import { AssignmentExpr, BinaryExpr, CallExpr, Identifier, ObjectLiteral } from "../../frontend/ast.ts";
 import Environment from "../environment.ts";
 import { evaluate } from "../interpreter.ts";
 import { MAKE_NULL } from "../macros.ts";
-import { RuntimeValue, NumberValue, ObjectValue } from "../values.ts";
+import { RuntimeValue, NumberValue, ObjectValue, NativeFunctionValue, FunctionValue } from "../values.ts";
 
 function evaluateNumericExpression(left: NumberValue, right: NumberValue, operator: string): NumberValue {
     let result = 0;
@@ -46,6 +46,15 @@ export function evaluateIdentifier(identifier: Identifier, env: Environment): Ru
     return value;
 }
 
+export function evaluateAssignment(node: AssignmentExpr, env: Environment): RuntimeValue {
+    if (node.assigne.kind != "Identifier") {
+        throw `Invalid LHS inside assignment expr ${JSON.stringify(node.assigne)}`
+    }
+
+    const varName = (node.assigne as Identifier).symbol;
+    return env.assignVariable(varName, evaluate(node.value, env));
+}
+
 export function evaluateObjectExpression(object: ObjectLiteral, env: Environment): RuntimeValue {
     const runtimeObject = {type: "object", properties: new Map()} as ObjectValue;
     
@@ -58,11 +67,33 @@ export function evaluateObjectExpression(object: ObjectLiteral, env: Environment
     return runtimeObject;
 }
 
-export function evaluateAssignment(node: AssignmentExpr, env: Environment): RuntimeValue {
-    if (node.assigne.kind != "Identifier") {
-        throw `Invalid LHS inside assignment expr ${JSON.stringify(node.assigne)}`
+export function evaluateCallExpression(expression: CallExpr, env: Environment): RuntimeValue {
+    const args = expression.args.map((arg) => evaluate(arg, env));
+    const func = evaluate(expression.caller, env);
+    
+    if (func.type == "native-function") {
+        return (func as NativeFunctionValue).call(args, env);
+    
     }
 
-    const varName = (node.assigne as Identifier).symbol;
-    return env.assignVariable(varName, evaluate(node.value, env));
+    if (func.type == "function") {
+        const fn = func as FunctionValue;
+        const scope = new Environment(fn.declarationEnv);
+
+        for (let i = 0; i < fn.parameters.length; i++) {
+            // check the bounds here:
+
+            const varName = fn.parameters[i];
+            scope.declareVariable(varName, args[i], false);
+        }
+
+        let result: RuntimeValue = MAKE_NULL();
+        for (const statement of fn.body) {
+            result = evaluate(statement, scope);
+        }
+
+        return result;
+    }
+
+    throw `Trying to call a non-function value as a function` + JSON.stringify(func);
 }

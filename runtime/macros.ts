@@ -1,4 +1,4 @@
-import { BooleanValue, NullValue, NumberValue } from "./values.ts";
+import { BooleanValue, FunctionCall, NativeFunctionValue, NullValue, NumberValue } from "./values.ts";
 
 export function MAKE_NUMBER(value: number): NumberValue {
     return {
@@ -19,4 +19,11 @@ export function MAKE_BOOL(value: boolean): BooleanValue {
         type: "boolean",
         value: value
     } as BooleanValue;
+}
+
+export function MAKE_NATIVE_FUNCTION(call: FunctionCall): NativeFunctionValue {
+    return {
+        type: "native-function",
+        call
+    } as NativeFunctionValue;
 }

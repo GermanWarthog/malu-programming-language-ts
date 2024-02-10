@@ -1,4 +1,4 @@
-import { MAKE_BOOL, MAKE_NULL } from "./macros.ts";
+import { MAKE_BOOL, MAKE_NATIVE_FUNCTION, MAKE_NULL, MAKE_NUMBER } from "./macros.ts";
 import { RuntimeValue } from "./values.ts";
 
 export function createGlobalEnvironment() {
@@ -7,6 +7,28 @@ export function createGlobalEnvironment() {
     env.declareVariable("true", MAKE_BOOL(true), true);
     env.declareVariable("false", MAKE_BOOL(false), true);
     env.declareVariable("null", MAKE_NULL(), true);
+
+    // Native Functions
+    env.declareVariable('print', MAKE_NATIVE_FUNCTION((args, scope) => {
+        //@ts-ignore
+        const value = args[0].value;
+
+        console.log(value || "null");
+        return MAKE_NULL();
+    }), true);
+
+    env.declareVariable('malu', MAKE_NATIVE_FUNCTION((args, scope) => {
+        for (let i = 0; i < 10000; i++) {
+            console.log("I Love You!\r");
+        }
+        return MAKE_NULL();
+    }), true);
+
+    function timeFunction(_args: RuntimeValue[], _scope: Environment) {
+       return MAKE_NUMBER(Date.now());
+    }
+
+    env.declareVariable("time", MAKE_NATIVE_FUNCTION(timeFunction), true);
 
     return env;
 }
